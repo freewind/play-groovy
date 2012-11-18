@@ -1,5 +1,9 @@
 package play.groovysupport
 
+//import play.test.SpockTest
+//import play.test.GebTest
+
+
 import groovy.io.FileType
 import play.Logger
 import play.Play
@@ -11,16 +15,16 @@ import play.classloading.ApplicationClassloaderState
 import play.classloading.BytecodeCache
 import play.classloading.HotswapAgent
 import play.exceptions.CompilationException
+import play.groovysupport.compiler.CallSiteRemover
+import play.groovysupport.compiler.ClassDefinition
+import play.groovysupport.compiler.CompilationErrorException
+import play.groovysupport.compiler.CompilationResult
+import play.groovysupport.compiler.GroovyCompiler
 import play.test.BaseTest
 import play.test.TestEngine.TestResults
 import play.vfs.VirtualFile
 
 import java.security.ProtectionDomain
-
-import play.groovysupport.compiler.*
-//import play.test.SpockTest
-//import play.test.GebTest
-import java.lang.reflect.Modifier
 
 class GroovyPlugin extends PlayPlugin {
 
@@ -91,11 +95,12 @@ class GroovyPlugin extends PlayPlugin {
 
     def getClass(name, code) {
         try {
+
             def method = ApplicationClassloader.class.getMethod('loadClass', String.class)
             method.accessible = true
             return method.invoke(Play.classloader, name)
         } catch (Exception ex) {
-            def method = ApplicationClassloader.class.getMethod('defineClass', String.class, byte[].class, Integer.TYPE, Integer.TYPE, ProtectionDomain.class)
+            def method = ClassLoader.class.getDeclaredMethod('defineClass', String.class, byte[].class, Integer.TYPE, Integer.TYPE, ProtectionDomain.class)
             method.accessible = true
             return method.invoke(Play.classloader, name, code, 0, code.length, Play.classloader.protectionDomain)
         }
@@ -123,12 +128,9 @@ class GroovyPlugin extends PlayPlugin {
     def updateInternalApplicationClasses(result, update = false) {
         Logger.debug("Updating internal Play classes: ${result.updatedClasses*.name}")
 
-        boolean sigChanged = false
         def toReload = []
         result.updatedClasses.each {
-            //We replace byte code in current application class
-            //as it was already created by stub generator and compiled
-            //with Java compiler
+            boolean sigChanged
             def appClass = Play.@classes.getApplicationClass(it.name)
             if (!appClass) appClass = new ApplicationClass(it.name)
             appClass.javaFile = VirtualFile.open(it.source)
@@ -276,7 +278,7 @@ class GroovyPlugin extends PlayPlugin {
     @Override
     void enhance(ApplicationClass applicationClass) {
         clearStampsEnhancer.enhanceThisClass(applicationClass)
-//        testRunnerEnhancer.enhanceThisClass(applicationClass)
+        testRunnerEnhancer.enhanceThisClass(applicationClass)
     }
 
     def toClassName(baseFolder, file) {
