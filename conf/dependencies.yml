@@ -2,7 +2,7 @@ self: marekpiechut -> groovy 0.1.99
 
 require:
     - play
-    - org.codehaus.groovy -> groovy-all 2.0.5
+    - org.codehaus.groovy -> groovy-all 2.0.5-indy
     - org.spockframework -> spock-core 0.7-groovy-2.0
     - org.codehaus.geb -> geb-spock 0.7.2
     - org.seleniumhq.selenium -> selenium-htmlunit-driver 2.26.0
