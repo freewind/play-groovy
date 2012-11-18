@@ -18,19 +18,18 @@ import play.vfs.VirtualFile
 import java.security.ProtectionDomain
 
 import play.groovysupport.compiler.*
-import play.test.SpockTest
-import play.test.GebTest
+//import play.test.SpockTest
+//import play.test.GebTest
 import java.lang.reflect.Modifier
 
 class GroovyPlugin extends PlayPlugin {
 
     def compiler
     def clearStampsEnhancer = new ClearGroovyStampsEnhancer()
-    def testRunnerEnhancer = new TestRunnerEnhancer()
+//    def testRunnerEnhancer = new TestRunnerEnhancer()
 
     @Override
     void onLoad() {
-
         def stubsFolder = new File(Play.tmpDir, 'groovy_stubs');
         compiler = new GroovyCompiler(System.getProperty('java.class.path')
                 .split(System.getProperty('path.separator')) as List,
